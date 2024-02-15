@@ -3,7 +3,12 @@ version: '3'
 services:
   spotify-test:
     image: golang:1.21
-    command: go run cmd/spotify
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - GOCACHE=/app/.cache/data
+      - GOMODCACHE=/app/.cache/mod
     env_file:
       - .secrets.env
-
+    command: go run /app/cmd/spotify

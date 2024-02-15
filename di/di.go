@@ -3,9 +3,12 @@ package di
 import (
 	"context"
 	"github.com/henges/trackrouter/config"
+	"github.com/henges/trackrouter/util"
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
+	"net/http"
 	"sync"
 )
 
@@ -23,9 +26,11 @@ func mustInitialiseSpotify(c *config.SpotifyConfig) *spotify.Client {
 		ClientID:     c.ClientId,
 		ClientSecret: c.ClientSecret,
 		TokenURL:     spotifyauth.TokenURL,
-		Scopes:       []string{"clientcredentials"},
 	}
-	httpClient := auth.Client(context.Background())
+	ctx := context.WithValue(context.TODO(),
+		oauth2.HTTPClient,
+		&http.Client{Transport: util.NewInstrumentedTransport(c.LogRequests)})
+	httpClient := auth.Client(ctx)
 
 	return spotify.New(httpClient)
 }
