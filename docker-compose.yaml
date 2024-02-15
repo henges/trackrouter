@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  spotify-test:
+    image: golang:1.21
+    command: go run cmd/spotify
+    env_file:
+      - .secrets.env
+
