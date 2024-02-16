@@ -2,8 +2,10 @@ package di
 
 import (
 	"context"
+	"github.com/henges/trackrouter/clients/tidal"
 	"github.com/henges/trackrouter/config"
 	"github.com/henges/trackrouter/util"
+	"github.com/rs/zerolog/log"
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
@@ -14,6 +16,7 @@ import (
 
 type Clients struct {
 	SpotifyClient *spotify.Client
+	TidalClient   tidal.Client
 }
 
 type Deps struct {
@@ -35,10 +38,20 @@ func mustInitialiseSpotify(c *config.SpotifyConfig) *spotify.Client {
 	return spotify.New(httpClient)
 }
 
+func mustInitialiseTidal(c *config.TidalConfig) tidal.Client {
+
+	client, err := tidal.NewClient(c)
+	if err != nil {
+		log.Fatal().Err(err).Msg("while initialising Tidal client")
+	}
+	return client
+}
+
 func mustInitialise(c *config.Config) *Deps {
 
 	d := &Deps{Clients: &Clients{}}
 	d.Clients.SpotifyClient = mustInitialiseSpotify(c.Spotify)
+	d.Clients.TidalClient = mustInitialiseTidal(c.Tidal)
 
 	return d
 }

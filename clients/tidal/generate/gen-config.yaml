@@ -1,0 +1,7 @@
+package: tidalgen
+generate:
+  client: true
+  models: true
+output: gen_tidal_search.go
+output-options:
+  response-type-suffix: ResponseTidal

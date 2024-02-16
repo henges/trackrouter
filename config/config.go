@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Spotify *SpotifyConfig
 	Logging *LoggingConfig
+	Tidal   *TidalConfig
 }
 
 type LoggingConfig struct {
@@ -19,6 +20,12 @@ type LoggingConfig struct {
 }
 
 type SpotifyConfig struct {
+	LogRequests  bool   `split_words:"true"`
+	ClientId     string `split_words:"true"`
+	ClientSecret string `split_words:"true"`
+}
+
+type TidalConfig struct {
 	LogRequests  bool   `split_words:"true"`
 	ClientId     string `split_words:"true"`
 	ClientSecret string `split_words:"true"`

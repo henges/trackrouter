@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  spotify-test:
+  app:
     image: golang:1.21
     volumes:
       - .:/app
@@ -11,4 +11,4 @@ services:
       - GOMODCACHE=/app/.cache/mod
     env_file:
       - .secrets.env
-    command: go run /app/cmd/spotify
+    command: go run /app/cmd/link_resolution
