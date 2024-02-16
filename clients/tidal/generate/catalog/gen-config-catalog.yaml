@@ -1,0 +1,7 @@
+package: tidalcatalog
+generate:
+  client: true
+  models: true
+output: gen_tidal_catalog.go
+output-options:
+  response-type-suffix: ResponseTidal

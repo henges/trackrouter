@@ -1,4 +1,4 @@
-package: tidalgen
+package: tidalsearch
 generate:
   client: true
   models: true

@@ -12,6 +12,7 @@ type Config struct {
 	Spotify *SpotifyConfig
 	Logging *LoggingConfig
 	Tidal   *TidalConfig
+	Youtube *YoutubeConfig
 }
 
 type LoggingConfig struct {
@@ -29,6 +30,10 @@ type TidalConfig struct {
 	LogRequests  bool   `split_words:"true"`
 	ClientId     string `split_words:"true"`
 	ClientSecret string `split_words:"true"`
+}
+
+type YoutubeConfig struct {
+	ApiKey string `split_words:"true"`
 }
 
 var c Config
