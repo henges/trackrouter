@@ -11,21 +11,10 @@ func main() {
 
 	c := config.Get()
 	deps := di.Get(c)
-	linkRes := service.NewLinkResolutionService(deps)
-	id, err := service.ResolveId("https://tidal.com/track/634872 best trip hop album imo! with his other one maxinquaye")
+	linkRes := service.NewLinkResolutionService(deps.Clients)
+	result, err := linkRes.FindLinks("https://tidal.com/track/634872 best trip hop album imo! with his other one maxinquaye")
 	if err != nil {
-		log.Fatal().Err(err).Send()
-		return
-	}
-	metadata, err := linkRes.GetTrackMetadata(id)
-	if err != nil {
-		log.Fatal().Err(err).Send()
-		return
-	}
-	result, err := linkRes.GetLinksFromMetadata(metadata)
-	if err != nil {
-		log.Fatal().Err(err).Send()
-		return
+		log.Err(err).Send()
 	}
 	log.Info().Any("result", result).Send()
 }

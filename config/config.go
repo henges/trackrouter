@@ -9,10 +9,13 @@ import (
 )
 
 type Config struct {
-	Spotify *SpotifyConfig
 	Logging *LoggingConfig
+
+	Spotify *SpotifyConfig
 	Tidal   *TidalConfig
 	Youtube *YoutubeConfig
+
+	Telegram *TelegramConfig
 }
 
 type LoggingConfig struct {
@@ -34,6 +37,12 @@ type TidalConfig struct {
 
 type YoutubeConfig struct {
 	ApiKey string `split_words:"true"`
+}
+
+type TelegramConfig struct {
+	UrlPath      string `split_words:"true"`
+	AuthToken    string `split_words:"true"`
+	SharedSecret string `split_words:"true"`
 }
 
 var c Config

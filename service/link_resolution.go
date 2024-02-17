@@ -6,45 +6,51 @@ import (
 	"fmt"
 	tidalcatalog "github.com/henges/trackrouter/clients/tidal/generate/catalog"
 	"github.com/henges/trackrouter/di"
+	"github.com/henges/trackrouter/model"
+	"github.com/henges/trackrouter/service/helpers"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 	"github.com/zmb3/spotify/v2"
 	"golang.org/x/sync/errgroup"
-	"regexp"
 	"strings"
 )
-
-var spotifyRegex = regexp.MustCompile("open\\.spotify\\.com/track/(\\w+)")
-var tidalRegex = regexp.MustCompile("tidal\\.com/track/(\\d+)")
 
 type LinkResolutionService struct {
 	Clients *di.Clients
 }
 
-func NewLinkResolutionService(di *di.Deps) *LinkResolutionService {
+func NewLinkResolutionService(c *di.Clients) *LinkResolutionService {
 
-	return &LinkResolutionService{Clients: di.Clients}
+	return &LinkResolutionService{Clients: c}
 }
 
-type Links struct {
-	SpotifyLink string `json:"spotifyLink"`
-	TidalLink   string `json:"tidalLink"`
-	YoutubeLink string `json:"youtubeLink"`
+func (l *LinkResolutionService) FindLinks(message string) (*model.Links, error) {
+
+	id, err := helpers.ResolveId(message)
+	if err != nil {
+		return nil, err
+	}
+	metadata, err := l.GetTrackMetadata(id)
+	if err != nil {
+		return nil, err
+	}
+	return l.GetLinksFromMetadata(metadata)
 }
 
-func (l *LinkResolutionService) GetLinksFromMetadata(md *TrackMetadata) (*Links, error) {
+func (l *LinkResolutionService) GetLinksFromMetadata(md *model.TrackMetadata) (*model.Links, error) {
 
 	q := strings.Join(append([]string{md.Title}, md.Artists...), " ")
 	return l.GetLinks(q)
 }
 
-func (l *LinkResolutionService) GetLinks(query string) (*Links, error) {
+func (l *LinkResolutionService) GetLinks(query string) (*model.Links, error) {
 
 	var eg errgroup.Group
-	var links Links
+	var links model.Links
+	ctx := context.TODO()
 
 	eg.Go(func() error {
-		search, err := l.Clients.SpotifyClient.Search(context.TODO(), query, spotify.SearchTypeTrack)
+		search, err := l.Clients.SpotifyClient.Search(ctx, query, spotify.SearchTypeTrack)
 		if err != nil {
 			return err
 		}
@@ -54,12 +60,13 @@ func (l *LinkResolutionService) GetLinks(query string) (*Links, error) {
 		return nil
 	})
 	eg.Go(func() error {
-		search, err := l.Clients.TidalClient.Search(context.TODO(), query)
+		search, err := l.Clients.TidalClient.Search(ctx, query)
 		if err != nil {
 			return err
 		}
 		if search.Tracks == nil {
 			log.Error().Msg("tracks was nil in Tidal response")
+			return nil
 		}
 		tracks := *search.Tracks
 		if len(tracks) > 0 {
@@ -82,68 +89,24 @@ func (l *LinkResolutionService) GetLinks(query string) (*Links, error) {
 	return &links, err
 }
 
-type ProviderType int
-
-const (
-	ProviderTypeSpotify ProviderType = 1
-	ProviderTypeTidal   ProviderType = 2
-	ProviderTypeYoutube ProviderType = 3
-)
-
-type ExternalTrackId struct {
-	ProviderType ProviderType
-	Id           string
-}
-
-var ErrNoMatch = errors.New("no match found for input text")
-
-func ResolveId(text string) (ExternalTrackId, error) {
-
-	spotifyMatch := regexpMatchWithGroup(text, spotifyRegex)
-	if spotifyMatch != "" {
-		return ExternalTrackId{ProviderType: ProviderTypeSpotify, Id: spotifyMatch}, nil
-	}
-	tidalMatch := regexpMatchWithGroup(text, tidalRegex)
-	if tidalMatch != "" {
-		return ExternalTrackId{ProviderType: ProviderTypeTidal, Id: tidalMatch}, nil
-	}
-
-	return ExternalTrackId{}, fmt.Errorf("for input text %s: %w", text, ErrNoMatch)
-}
-
-func regexpMatchWithGroup(text string, exp *regexp.Regexp) string {
-
-	matches := exp.FindStringSubmatch(text)
-	if len(matches) < 2 {
-		return ""
-	}
-	return matches[1]
-}
-
-type TrackMetadata struct {
-	Title   string
-	Artists []string
-	Album   string
-}
-
 var ErrUnsupportedProviderType = errors.New("unsupported provider type")
 
-func (l *LinkResolutionService) GetTrackMetadata(id ExternalTrackId) (*TrackMetadata, error) {
+func (l *LinkResolutionService) GetTrackMetadata(id model.ExternalTrackId) (*model.TrackMetadata, error) {
 
 	switch id.ProviderType {
-	case ProviderTypeSpotify:
+	case model.ProviderTypeSpotify:
 		track, err := l.Clients.SpotifyClient.GetTrack(context.TODO(), spotify.ID(id.Id))
 		if err != nil {
 			return nil, err
 		}
-		return &TrackMetadata{
+		return &model.TrackMetadata{
 			Title: track.Name,
 			Artists: lo.Map(track.Artists, func(item spotify.SimpleArtist, index int) string {
 				return item.Name
 			}),
 			Album: track.Album.Name,
 		}, nil
-	case ProviderTypeTidal:
+	case model.ProviderTypeTidal:
 		track, err := l.Clients.TidalClient.TrackFromId(context.TODO(), id.Id)
 		if err != nil {
 			return nil, err
@@ -156,7 +119,7 @@ func (l *LinkResolutionService) GetTrackMetadata(id ExternalTrackId) (*TrackMeta
 			return nil, errors.New("track.Data was empty in tidal response")
 		}
 		ft := data[0].Resource
-		return &TrackMetadata{
+		return &model.TrackMetadata{
 			Title: ft.Title,
 			Artists: lo.Map(*ft.Artists, func(item tidalcatalog.SimpleArtist, index int) string {
 				return item.Name
