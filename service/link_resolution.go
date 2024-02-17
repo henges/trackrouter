@@ -34,7 +34,7 @@ func (l *LinkResolutionService) FindLinks(message string) (*model.LinksMatchResu
 	if err != nil {
 		return nil, err
 	}
-	links, err := l.GetLinksFromMetadata(id, metadata)
+	links, err := l.LookupLinksFromMetadata(id, metadata)
 	if err != nil {
 		return nil, err
 	}
@@ -44,13 +44,13 @@ func (l *LinkResolutionService) FindLinks(message string) (*model.LinksMatchResu
 	}, nil
 }
 
-func (l *LinkResolutionService) GetLinksFromMetadata(id model.ExternalTrackId, md *model.TrackMetadata) (*model.Links, error) {
+func (l *LinkResolutionService) LookupLinksFromMetadata(id model.ExternalTrackId, md *model.TrackMetadata) (*model.Links, error) {
 
 	q := strings.Join(append([]string{md.Title}, md.Artists...), " ")
-	return l.GetLinks(q, id.ProviderType)
+	return l.LookupLinks(q, id.ProviderType)
 }
 
-func (l *LinkResolutionService) GetLinks(query string, exclude model.ProviderType) (*model.Links, error) {
+func (l *LinkResolutionService) LookupLinks(query string, exclude model.ProviderType) (*model.Links, error) {
 
 	var eg errgroup.Group
 	var links model.Links

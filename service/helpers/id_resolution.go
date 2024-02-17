@@ -8,7 +8,7 @@ import (
 )
 
 var spotifyRegex = regexp.MustCompile("open\\.spotify\\.com/track/(\\w+)")
-var tidalRegex = regexp.MustCompile("tidal\\.com/track/(\\d+)")
+var tidalRegex = regexp.MustCompile("tidal\\.com/(browse/)?track/(\\d+)")
 var ErrNoMatch = errors.New("no match found for input text")
 
 func ResolveId(text string) (model.ExternalTrackId, error) {
@@ -31,5 +31,5 @@ func regexpMatchWithGroup(text string, exp *regexp.Regexp) string {
 	if len(matches) < 2 {
 		return ""
 	}
-	return matches[1]
+	return matches[len(matches)-1]
 }

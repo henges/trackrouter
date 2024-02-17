@@ -25,6 +25,15 @@ func TestResolveLink_Tidal(t *testing.T) {
 	assert.Equal(t, "82528930", id.Id)
 }
 
+func TestResolveLink_Tidal_Browse(t *testing.T) {
+
+	tidalInput := "https://tidal.com/browse/track/82528930"
+	id, err := ResolveId(tidalInput)
+	assert.Nil(t, err)
+	assert.Equal(t, model.ProviderTypeTidal, id.ProviderType)
+	assert.Equal(t, "82528930", id.Id)
+}
+
 func TestResolveLink_NoMatch_Error(t *testing.T) {
 
 	input := "abcd not a link"
