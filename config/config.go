@@ -40,6 +40,8 @@ type YoutubeConfig struct {
 }
 
 type TelegramConfig struct {
+	ListenPort   int    `split_words:"true" default:"23150"`
+	Host         string `split_words:"true"`
 	UrlPath      string `split_words:"true"`
 	AuthToken    string `split_words:"true"`
 	SharedSecret string `split_words:"true"`

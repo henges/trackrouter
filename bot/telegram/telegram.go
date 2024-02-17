@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"fmt"
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	gobot "github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/henges/trackrouter/config"
@@ -14,6 +15,7 @@ type WebhookBot struct {
 	b          *gotgbot.Bot
 	dispatcher *gobot.Dispatcher
 	updater    *gobot.Updater
+	c          *config.TelegramConfig
 }
 
 func NewWebhookBot(c *config.TelegramConfig, cl *di.Clients) (*WebhookBot, error) {
@@ -31,14 +33,23 @@ func NewWebhookBot(c *config.TelegramConfig, cl *di.Clients) (*WebhookBot, error
 		},
 		MaxRoutines: gobot.DefaultMaxRoutines,
 	})
-	dispatcher.AddHandler(&LinkHandler{bot: bot, svc: service.NewLinkResolutionService(cl)})
+	dispatcher.AddHandler(&LinkHandler{svc: service.NewLinkResolutionService(cl)})
 	updater := gobot.NewUpdater(dispatcher, nil)
-	err = updater.AddWebhook(bot, c.UrlPath, &gobot.AddWebhookOpts{SecretToken: c.SharedSecret})
-	if err != nil {
-		return nil, err
-	}
 
-	return &WebhookBot{b: bot, dispatcher: dispatcher, updater: updater}, nil
+	return &WebhookBot{b: bot, dispatcher: dispatcher, updater: updater, c: c}, nil
+}
+
+func (b *WebhookBot) Start() error {
+
+	err := b.updater.AddWebhook(b.b, b.c.UrlPath, &gobot.AddWebhookOpts{SecretToken: b.c.SharedSecret})
+	if err != nil {
+		return err
+	}
+	err = b.updater.StartServer(gobot.WebhookOpts{ListenAddr: fmt.Sprintf("0.0.0.0:%d", b.c.ListenPort), SecretToken: b.c.SharedSecret})
+	if err != nil {
+		return err
+	}
+	return b.updater.SetAllBotWebhooks(b.c.Host, &gotgbot.SetWebhookOpts{SecretToken: b.c.SharedSecret})
 }
 
 func (b *WebhookBot) Stop() error {
@@ -47,12 +58,12 @@ func (b *WebhookBot) Stop() error {
 }
 
 type LinkHandler struct {
-	bot *gotgbot.Bot
 	svc *service.LinkResolutionService
 }
 
 // CheckUpdate checks whether the update should handled by this handler.
 func (h *LinkHandler) CheckUpdate(b *gotgbot.Bot, ctx *gobot.Context) bool {
+	log.Debug().Msg("Received update")
 	senderIsNotBot := ctx.EffectiveUser.Id != b.Id
 	return senderIsNotBot
 }
@@ -60,6 +71,7 @@ func (h *LinkHandler) CheckUpdate(b *gotgbot.Bot, ctx *gobot.Context) bool {
 // HandleUpdate processes the update.
 func (h *LinkHandler) HandleUpdate(b *gotgbot.Bot, ctx *gobot.Context) error {
 	message := ctx.EffectiveMessage.Text
+	log.Debug().Str("messageBody", message).Str("username", ctx.EffectiveUser.Username).Msg("Handle update")
 	links, err := h.svc.FindLinks(message)
 	if err != nil {
 		return err
