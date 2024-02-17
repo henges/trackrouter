@@ -6,11 +6,18 @@ import (
 	"strings"
 )
 
-func Links(l *model.Links) string {
+func LinksMatchResult(l *model.LinksMatchResult) string {
 
-	nonEmpty := lo.Filter([]string{l.SpotifyLink, l.TidalLink, l.YoutubeLink}, func(s string, _ int) bool {
+	var values []string
+	switch l.Id.ProviderType {
+	case model.ProviderTypeSpotify:
+		values = []string{l.Links.YoutubeLink, l.Links.TidalLink}
+	case model.ProviderTypeTidal:
+		values = []string{l.Links.YoutubeLink, l.Links.SpotifyLink}
+	}
+
+	nonEmpty := lo.Filter(values, func(s string, _ int) bool {
 		return s != ""
 	})
-
 	return strings.Join(nonEmpty, "\n")
 }

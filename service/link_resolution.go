@@ -24,7 +24,7 @@ func NewLinkResolutionService(c *di.Clients) *LinkResolutionService {
 	return &LinkResolutionService{Clients: c}
 }
 
-func (l *LinkResolutionService) FindLinks(message string) (*model.Links, error) {
+func (l *LinkResolutionService) FindLinks(message string) (*model.LinksMatchResult, error) {
 
 	id, err := helpers.ResolveId(message)
 	if err != nil {
@@ -34,25 +34,37 @@ func (l *LinkResolutionService) FindLinks(message string) (*model.Links, error) 
 	if err != nil {
 		return nil, err
 	}
-	return l.GetLinksFromMetadata(metadata)
+	links, err := l.GetLinksFromMetadata(id, metadata)
+	if err != nil {
+		return nil, err
+	}
+	return &model.LinksMatchResult{
+		Id:    id,
+		Links: links,
+	}, nil
 }
 
-func (l *LinkResolutionService) GetLinksFromMetadata(md *model.TrackMetadata) (*model.Links, error) {
+func (l *LinkResolutionService) GetLinksFromMetadata(id model.ExternalTrackId, md *model.TrackMetadata) (*model.Links, error) {
 
 	q := strings.Join(append([]string{md.Title}, md.Artists...), " ")
-	return l.GetLinks(q)
+	return l.GetLinks(q, id.ProviderType)
 }
 
-func (l *LinkResolutionService) GetLinks(query string) (*model.Links, error) {
+func (l *LinkResolutionService) GetLinks(query string, exclude model.ProviderType) (*model.Links, error) {
 
 	var eg errgroup.Group
 	var links model.Links
 	ctx := context.TODO()
 
 	eg.Go(func() error {
+		if exclude == model.ProviderTypeSpotify {
+			return nil
+		}
+
 		search, err := l.Clients.SpotifyClient.Search(ctx, query, spotify.SearchTypeTrack)
 		if err != nil {
-			return err
+			log.Error().Err(err).Msg("in spotify request")
+			return nil
 		}
 		if len(search.Tracks.Tracks) > 0 {
 			links.SpotifyLink = fmt.Sprintf("https://open.spotify.com/track/%s", search.Tracks.Tracks[0].ID)
@@ -60,9 +72,14 @@ func (l *LinkResolutionService) GetLinks(query string) (*model.Links, error) {
 		return nil
 	})
 	eg.Go(func() error {
+		if exclude == model.ProviderTypeTidal {
+			return nil
+		}
+
 		search, err := l.Clients.TidalClient.Search(ctx, query)
 		if err != nil {
-			return err
+			log.Error().Err(err).Msg("in tidal request")
+			return nil
 		}
 		if search.Tracks == nil {
 			log.Error().Msg("tracks was nil in Tidal response")
@@ -75,9 +92,14 @@ func (l *LinkResolutionService) GetLinks(query string) (*model.Links, error) {
 		return nil
 	})
 	eg.Go(func() error {
+		if exclude == model.ProviderTypeYoutube {
+			return nil
+		}
+
 		res, err := l.Clients.YoutubeClient.Search.List([]string{"snippet"}).Q(query).Do()
 		if err != nil {
-			return err
+			log.Error().Err(err).Msg("in youtube request")
+			return nil
 		}
 		if len(res.Items) > 0 {
 			links.YoutubeLink = fmt.Sprintf("https://youtube.com/watch?v=%s", res.Items[0].Id.VideoId)
