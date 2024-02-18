@@ -5,6 +5,8 @@ import (
 	"github.com/henges/trackrouter/bot/telegram"
 	"github.com/henges/trackrouter/config"
 	"github.com/henges/trackrouter/di"
+	"github.com/henges/trackrouter/providers"
+	"github.com/henges/trackrouter/service"
 	"github.com/rs/zerolog/log"
 	"os/signal"
 	"syscall"
@@ -16,7 +18,8 @@ func main() {
 	log.Info().Msg("App started")
 
 	deps := di.Get(c)
-	b, err := telegram.NewWebhookBot(c.Telegram, deps.Clients)
+	ps := providers.NewProviders(di.DefaultProvidersFromDeps(deps.Clients)...)
+	b, err := telegram.NewWebhookBot(c.Telegram, service.NewLinkResolutionService(ps))
 	if err != nil {
 		log.Fatal().Err(err).Msg("while creating telegram bot")
 	}

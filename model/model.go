@@ -4,8 +4,10 @@ import "fmt"
 
 type LinksMatchResult struct {
 	Id    ExternalTrackId
-	Links *Links
+	Links Links
 }
+
+type Links map[ProviderType]string
 
 type ProviderType int
 
@@ -37,28 +39,4 @@ type TrackMetadata struct {
 	Title   string
 	Artists []string
 	Album   string
-}
-
-type Links struct {
-	SpotifyLink string `json:"spotifyLink"`
-	TidalLink   string `json:"tidalLink"`
-	YoutubeLink string `json:"youtubeLink"`
-}
-
-func (l Links) Count() int {
-	count := 0
-	if l.SpotifyLink != "" {
-		count++
-	}
-	if l.TidalLink != "" {
-		count++
-	}
-	if l.YoutubeLink != "" {
-		count++
-	}
-	return count
-}
-
-func (l Links) IsEmpty() bool {
-	return l.SpotifyLink == "" && l.TidalLink == "" && l.YoutubeLink == ""
 }

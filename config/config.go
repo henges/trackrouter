@@ -55,7 +55,7 @@ func Get() *Config {
 	once.Do(func() {
 		envconfig.MustProcess("", &c)
 		configureLogging(c.Logging)
-		log.Info().Any("config", c).Send()
+		log.Trace().Any("config", c).Send()
 	})
 	return &c
 }

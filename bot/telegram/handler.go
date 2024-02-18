@@ -5,8 +5,8 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	gobot "github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/henges/trackrouter/format"
+	"github.com/henges/trackrouter/providers/errors"
 	"github.com/henges/trackrouter/service"
-	"github.com/henges/trackrouter/service/helpers"
 	"github.com/rs/zerolog/log"
 )
 
@@ -32,26 +32,27 @@ func (h *LinkHandler) HandleUpdate(b *gotgbot.Bot, ctx *gobot.Context) error {
 	result, err := h.svc.FindLinks(message)
 	if err != nil {
 		// Not an error case.
-		if errors.Is(err, helpers.ErrNoMatch) {
+		if errors.Is(err, providererrors.ErrMessageNotMatched) {
 			log.Trace().
+				Err(err).
 				Str("messageBody", message).
 				Str("username", user).
 				Msg("Message didn't match regex")
 			return nil
 		}
+		if errors.Is(err, providererrors.ErrIdNotMatched) {
+			log.Trace().
+				Err(err).
+				Str("messageBody", message).
+				Str("username", user).
+				Msg("Couldn't find any matches for track")
+			return nil
+		}
 		return err
-	}
-	if result.Links.IsEmpty() {
-		// No matches. Not an error case.
-		log.Trace().
-			Str("messageBody", message).
-			Str("username", user).
-			Msg("No matches found")
-		return nil
 	}
 	log.Info().
 		Stringer("providerType", result.Id.ProviderType).
-		Int("matches", result.Links.Count()).
+		Int("matches", len(result.Links)).
 		Str("username", user).
 		Msg("Handled update")
 	_, err = b.SendMessage(ctx.EffectiveChat.Id, format.LinksMatchResult(result), nil)

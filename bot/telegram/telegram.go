@@ -5,7 +5,6 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	gobot "github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/henges/trackrouter/config"
-	"github.com/henges/trackrouter/di"
 	"github.com/henges/trackrouter/service"
 	"github.com/rs/zerolog/log"
 )
@@ -17,7 +16,7 @@ type WebhookBot struct {
 	c          *config.TelegramConfig
 }
 
-func NewWebhookBot(c *config.TelegramConfig, cl *di.Clients) (*WebhookBot, error) {
+func NewWebhookBot(c *config.TelegramConfig, lres *service.LinkResolutionService) (*WebhookBot, error) {
 
 	bot, err := gotgbot.NewBot(c.AuthToken, nil)
 	if err != nil {
@@ -32,7 +31,7 @@ func NewWebhookBot(c *config.TelegramConfig, cl *di.Clients) (*WebhookBot, error
 		},
 		MaxRoutines: gobot.DefaultMaxRoutines,
 	})
-	dispatcher.AddHandler(&LinkHandler{svc: service.NewLinkResolutionService(cl)})
+	dispatcher.AddHandler(&LinkHandler{svc: lres})
 	updater := gobot.NewUpdater(dispatcher, nil)
 	err = updater.AddWebhook(bot, c.UrlPath, &gobot.AddWebhookOpts{SecretToken: c.SharedSecret})
 	if err != nil {

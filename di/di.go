@@ -4,6 +4,11 @@ import (
 	"context"
 	"github.com/henges/trackrouter/clients/tidal"
 	"github.com/henges/trackrouter/config"
+	"github.com/henges/trackrouter/model"
+	"github.com/henges/trackrouter/providers/spotify"
+	"github.com/henges/trackrouter/providers/tidal"
+	"github.com/henges/trackrouter/providers/types"
+	"github.com/henges/trackrouter/providers/youtube"
 	"github.com/henges/trackrouter/util"
 	"github.com/rs/zerolog/log"
 	"github.com/zmb3/spotify/v2"
@@ -80,4 +85,17 @@ func Get(c *config.Config) *Deps {
 		deps = mustInitialise(c)
 	})
 	return deps
+}
+
+func DefaultProvidersFromDeps(clients *Clients) []providertypes.ProviderMakerFunc {
+
+	return []providertypes.ProviderMakerFunc{
+		func() (model.ProviderType, providertypes.Provider) {
+			return model.ProviderTypeSpotify, spotifyprovider.NewSpotifyProvider(clients.SpotifyClient)
+		}, func() (model.ProviderType, providertypes.Provider) {
+			return model.ProviderTypeTidal, tidalprovider.NewTidalProvider(clients.TidalClient)
+		}, func() (model.ProviderType, providertypes.Provider) {
+			return model.ProviderTypeYoutube, youtubeprovider.NewYoutubeProvider(clients.YoutubeClient)
+		},
+	}
 }
