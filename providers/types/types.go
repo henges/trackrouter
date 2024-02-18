@@ -11,7 +11,7 @@ type Provider interface {
 	// LookupId attempts to locate track metadata based on an ID.
 	LookupId(id string) (model.TrackMetadata, error)
 
-	// LookupMetadata attempts to locate a matching ID for a track
+	// LookupMetadata attempts to locate a matching URL for a track
 	// based on the input metadata.
 	LookupMetadata(metadata model.TrackMetadata) string
 }

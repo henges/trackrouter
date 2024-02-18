@@ -52,6 +52,7 @@ func (h *LinkHandler) HandleUpdate(b *gotgbot.Bot, ctx *gobot.Context) error {
 	}
 	log.Info().
 		Stringer("providerType", result.Id.ProviderType).
+		Any("metadata", result.TrackMetadata).
 		Int("matches", len(result.Links)).
 		Str("username", user).
 		Msg("Handled update")

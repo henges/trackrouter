@@ -5,6 +5,7 @@ import (
 	"github.com/henges/trackrouter/clients/tidal"
 	"github.com/henges/trackrouter/config"
 	"github.com/henges/trackrouter/model"
+	plexprovider "github.com/henges/trackrouter/providers/plex"
 	"github.com/henges/trackrouter/providers/spotify"
 	"github.com/henges/trackrouter/providers/tidal"
 	"github.com/henges/trackrouter/providers/types"
@@ -96,6 +97,8 @@ func DefaultProvidersFromDeps(clients *Clients) []providertypes.ProviderMakerFun
 			return model.ProviderTypeTidal, tidalprovider.NewTidalProvider(clients.TidalClient)
 		}, func() (model.ProviderType, providertypes.Provider) {
 			return model.ProviderTypeYoutube, youtubeprovider.NewYoutubeProvider(clients.YoutubeClient)
+		}, func() (model.ProviderType, providertypes.Provider) {
+			return model.ProviderTypePlex, plexprovider.NewPlexProvider()
 		},
 	}
 }

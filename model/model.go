@@ -3,8 +3,9 @@ package model
 import "fmt"
 
 type LinksMatchResult struct {
-	Id    ExternalTrackId
-	Links Links
+	Id            ExternalTrackId
+	TrackMetadata TrackMetadata
+	Links         Links
 }
 
 type Links map[ProviderType]string
@@ -15,6 +16,7 @@ const (
 	ProviderTypeSpotify ProviderType = 1
 	ProviderTypeTidal   ProviderType = 2
 	ProviderTypeYoutube ProviderType = 3
+	ProviderTypePlex    ProviderType = 4
 )
 
 func (p ProviderType) String() string {
@@ -25,6 +27,8 @@ func (p ProviderType) String() string {
 		return "Tidal"
 	case ProviderTypeYoutube:
 		return "Youtube"
+	case ProviderTypePlex:
+		return "Plex"
 	}
 
 	return fmt.Sprintf("unknown provider type %d", p)
