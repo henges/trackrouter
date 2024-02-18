@@ -3,7 +3,6 @@ package service
 import (
 	"github.com/henges/trackrouter/model"
 	"github.com/henges/trackrouter/providers"
-	"github.com/henges/trackrouter/providers/errors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -30,7 +29,7 @@ func (l *LinkResolutionService) FindLinks(message string) (*model.LinksMatchResu
 	log.Debug().Stringer("providerType", providerType).Str("id", id.Id).Any("metadata", metadata).Msg("Got metadata")
 	links := l.Providers.Except(providerType).LookupMetadata(metadata)
 	if len(links) == 0 {
-		return nil, providererrors.ErrIdNotMatched
+		return nil, providers.ErrIdNotMatched
 	}
 	log.Debug().Stringer("providerType", providerType).
 		Str("id", id.Id).Any("metadata", metadata).Any("links", links).Msg("Got metadata")

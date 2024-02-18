@@ -3,15 +3,13 @@ package youtubeprovider
 import (
 	"fmt"
 	"github.com/henges/trackrouter/model"
-	"github.com/henges/trackrouter/providers/errors"
-	"github.com/henges/trackrouter/providers/helpers"
-	"github.com/henges/trackrouter/providers/types"
+	"github.com/henges/trackrouter/providers"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/api/youtube/v3"
 	"regexp"
 )
 
-func NewYoutubeProvider(c *youtube.Service) providertypes.Provider {
+func NewYoutubeProvider(c *youtube.Service) providers.Provider {
 
 	return &YoutubeProvider{
 		YoutubeMatch:  &YoutubeMatch{},
@@ -33,7 +31,7 @@ type YoutubeLookup struct {
 var youtubeRegex = regexp.MustCompile("youtube\\.com/watch?v=([^&]+)")
 
 func (s *YoutubeMatch) MatchId(text string) (model.ExternalTrackId, error) {
-	return model.ExternalTrackId{}, providererrors.ErrUnsupportedOperations
+	return model.ExternalTrackId{}, providers.ErrUnsupportedOperations
 	//if match := util.RegexpMatchWithGroup(text, youtubeRegex); match != "" {
 	//	return model.ExternalTrackId{ProviderType: model.ProviderTypeYoutube, Id: match}, nil
 	//}
@@ -43,12 +41,12 @@ func (s *YoutubeMatch) MatchId(text string) (model.ExternalTrackId, error) {
 
 func (s *YoutubeLookup) LookupId(id string) (model.TrackMetadata, error) {
 
-	return model.TrackMetadata{}, providererrors.ErrUnsupportedOperations
+	return model.TrackMetadata{}, providers.ErrUnsupportedOperations
 }
 
 func (s *YoutubeLookup) LookupMetadata(metadata model.TrackMetadata) string {
 
-	query := providerhelpers.DefaultTrackMetadataQuery(metadata)
+	query := providers.DefaultTrackMetadataQuery(metadata)
 	res, err := s.client.Search.List([]string{"snippet"}).Q(query).Do()
 	if err != nil {
 		log.Error().Err(err).Msg("in youtube request")

@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/henges/trackrouter/model"
-	"github.com/henges/trackrouter/providers/helpers"
-	"github.com/henges/trackrouter/providers/types"
+	"github.com/henges/trackrouter/providers"
 	"github.com/henges/trackrouter/util"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
@@ -13,7 +12,7 @@ import (
 	"regexp"
 )
 
-func NewSpotifyProvider(c *spotify.Client) providertypes.Provider {
+func NewSpotifyProvider(c *spotify.Client) providers.Provider {
 
 	return &SpotifyProvider{
 		SpotifyMatch:  &SpotifyMatch{},
@@ -40,7 +39,7 @@ func (s *SpotifyMatch) MatchId(text string) (model.ExternalTrackId, error) {
 		return model.ExternalTrackId{ProviderType: model.ProviderTypeSpotify, Id: match}, nil
 	}
 
-	return providerhelpers.DefaultNoMatchResult(text)
+	return providers.DefaultNoMatchResult(text)
 }
 
 func (s *SpotifyLookup) LookupId(id string) (model.TrackMetadata, error) {
@@ -60,7 +59,7 @@ func (s *SpotifyLookup) LookupId(id string) (model.TrackMetadata, error) {
 
 func (s *SpotifyLookup) LookupMetadata(metadata model.TrackMetadata) string {
 
-	query := providerhelpers.DefaultTrackMetadataQuery(metadata)
+	query := providers.DefaultTrackMetadataQuery(metadata)
 	search, err := s.client.Search(context.Background(), query, spotify.SearchTypeTrack)
 	if err != nil {
 		log.Error().Err(err).Msg("in spotify request")

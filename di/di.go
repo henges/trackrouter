@@ -5,11 +5,11 @@ import (
 	"github.com/henges/trackrouter/clients/tidal"
 	"github.com/henges/trackrouter/config"
 	"github.com/henges/trackrouter/model"
+	"github.com/henges/trackrouter/providers"
 	plexprovider "github.com/henges/trackrouter/providers/plex"
-	"github.com/henges/trackrouter/providers/spotify"
-	"github.com/henges/trackrouter/providers/tidal"
-	"github.com/henges/trackrouter/providers/types"
-	"github.com/henges/trackrouter/providers/youtube"
+	spotifyprovider "github.com/henges/trackrouter/providers/spotify"
+	tidalprovider "github.com/henges/trackrouter/providers/tidal"
+	youtubeprovider "github.com/henges/trackrouter/providers/youtube"
 	"github.com/henges/trackrouter/util"
 	"github.com/rs/zerolog/log"
 	"github.com/zmb3/spotify/v2"
@@ -88,16 +88,16 @@ func Get(c *config.Config) *Deps {
 	return deps
 }
 
-func DefaultProvidersFromDeps(clients *Clients) []providertypes.ProviderMakerFunc {
+func DefaultProvidersFromDeps(clients *Clients) []providers.ProviderMakerFunc {
 
-	return []providertypes.ProviderMakerFunc{
-		func() (model.ProviderType, providertypes.Provider) {
+	return []providers.ProviderMakerFunc{
+		func() (model.ProviderType, providers.Provider) {
 			return model.ProviderTypeSpotify, spotifyprovider.NewSpotifyProvider(clients.SpotifyClient)
-		}, func() (model.ProviderType, providertypes.Provider) {
+		}, func() (model.ProviderType, providers.Provider) {
 			return model.ProviderTypeTidal, tidalprovider.NewTidalProvider(clients.TidalClient)
-		}, func() (model.ProviderType, providertypes.Provider) {
+		}, func() (model.ProviderType, providers.Provider) {
 			return model.ProviderTypeYoutube, youtubeprovider.NewYoutubeProvider(clients.YoutubeClient)
-		}, func() (model.ProviderType, providertypes.Provider) {
+		}, func() (model.ProviderType, providers.Provider) {
 			return model.ProviderTypePlex, plexprovider.NewPlexProvider()
 		},
 	}

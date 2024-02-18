@@ -5,7 +5,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	gobot "github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/henges/trackrouter/format"
-	"github.com/henges/trackrouter/providers/errors"
+	"github.com/henges/trackrouter/providers"
 	"github.com/henges/trackrouter/service"
 	"github.com/rs/zerolog/log"
 )
@@ -32,7 +32,7 @@ func (h *LinkHandler) HandleUpdate(b *gotgbot.Bot, ctx *gobot.Context) error {
 	result, err := h.svc.FindLinks(message)
 	if err != nil {
 		// Not an error case.
-		if errors.Is(err, providererrors.ErrMessageNotMatched) {
+		if errors.Is(err, providers.ErrMessageNotMatched) {
 			log.Trace().
 				Err(err).
 				Str("messageBody", message).
@@ -40,7 +40,7 @@ func (h *LinkHandler) HandleUpdate(b *gotgbot.Bot, ctx *gobot.Context) error {
 				Msg("Message didn't match regex")
 			return nil
 		}
-		if errors.Is(err, providererrors.ErrIdNotMatched) {
+		if errors.Is(err, providers.ErrIdNotMatched) {
 			log.Trace().
 				Err(err).
 				Str("messageBody", message).

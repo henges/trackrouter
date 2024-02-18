@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/henges/trackrouter/model"
-	providerhelpers "github.com/henges/trackrouter/providers/helpers"
-	providertypes "github.com/henges/trackrouter/providers/types"
+	"github.com/henges/trackrouter/providers"
 	"github.com/henges/trackrouter/util"
 	"io"
 	"net/http"
@@ -15,7 +14,7 @@ import (
 	"strings"
 )
 
-func NewPlexProvider() providertypes.Provider {
+func NewPlexProvider() providers.Provider {
 
 	return &PlexProvider{&http.Client{}}
 }
@@ -38,7 +37,7 @@ func (p *PlexProvider) MatchId(text string) (model.ExternalTrackId, error) {
 			Id:           match,
 		}, nil
 	}
-	return providerhelpers.DefaultNoMatchResult(text)
+	return providers.DefaultNoMatchResult(text)
 }
 
 // LookupId attempts to locate track metadata based on an ID.
