@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func LinksMatchResult(l *model.LinksMatchResult) string {
+func LinksMatchResult(l model.Links) string {
 
 	// The order we want links to appear in
 	order := []model.ProviderType{
@@ -14,9 +14,9 @@ func LinksMatchResult(l *model.LinksMatchResult) string {
 		model.ProviderTypeSpotify,
 		model.ProviderTypePlex,
 	}
-	strs := make([]string, 0, len(l.Links))
+	strs := make([]string, 0, len(l))
 	for _, v := range order {
-		if val, ok := l.Links[v]; ok {
+		if val, ok := l[v]; ok {
 			strs = append(strs, val)
 		}
 	}

@@ -2,7 +2,7 @@ package model
 
 import "fmt"
 
-type LinksMatchResult struct {
+type UrlMatchResult struct {
 	Id            ExternalTrackId
 	TrackMetadata TrackMetadata
 	Links         Links

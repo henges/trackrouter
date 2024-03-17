@@ -1,6 +1,6 @@
 module github.com/henges/trackrouter
 
-go 1.21.5
+go 1.22.1
 
 require (
 	github.com/PaulSonOfLars/gotgbot/v2 v2.0.0-rc.24

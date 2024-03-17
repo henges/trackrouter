@@ -6,7 +6,6 @@ import (
 	"github.com/henges/trackrouter/model"
 	"github.com/henges/trackrouter/providers"
 	"github.com/henges/trackrouter/util"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 	"github.com/zmb3/spotify/v2"
 	"regexp"
@@ -59,14 +58,30 @@ func (s *SpotifyLookup) LookupId(id string) (model.TrackMetadata, error) {
 
 func (s *SpotifyLookup) LookupMetadata(metadata model.TrackMetadata) string {
 
-	query := providers.DefaultTrackMetadataQuery(metadata)
+	if result, err := s.doSearch(providers.DefaultTrackMetadataQuery(metadata)); err != nil {
+		return ""
+	} else {
+		return result
+	}
+}
+
+func (s *SpotifyLookup) LookupQuery(query string) string {
+
+	if result, err := s.doSearch(query); err != nil {
+		return ""
+	} else {
+		return result
+	}
+}
+
+func (s *SpotifyLookup) doSearch(query string) (string, error) {
+
 	search, err := s.client.Search(context.Background(), query, spotify.SearchTypeTrack)
 	if err != nil {
-		log.Error().Err(err).Msg("in spotify request")
-		return ""
+		return "", err
 	}
 	if len(search.Tracks.Tracks) > 0 {
-		return fmt.Sprintf("https://open.spotify.com/track/%s", search.Tracks.Tracks[0].ID)
+		return fmt.Sprintf("https://open.spotify.com/track/%s", search.Tracks.Tracks[0].ID), nil
 	}
-	return ""
+	return "", providers.ErrMessageNotMatched
 }

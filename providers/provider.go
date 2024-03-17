@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/henges/trackrouter/model"
+	"github.com/henges/trackrouter/util"
 	"strings"
-	"sync"
 )
 
 type Providers map[model.ProviderType]Provider
@@ -24,6 +24,12 @@ type Provider interface {
 	LookupMetadata(metadata model.TrackMetadata) string
 }
 
+type Searcher interface {
+	// LookupQuery attempts to locate a matching URL for a track
+	//	based on free text.
+	LookupQuery(query string) string
+}
+
 type ProviderMakerFunc func() (model.ProviderType, Provider)
 
 var ErrMessageNotMatched = errors.New("no match found for input text")
@@ -40,7 +46,7 @@ func NewProviders(providerFuncs ...ProviderMakerFunc) Providers {
 	return ret
 }
 
-// MatchId executes [providertypes.Provider.MatchId] for each providertypes.Provider, returning
+// MatchId executes [providers.Provider.MatchId] for each providers.Provider, returning
 // a model.ExternalTrackId for the first non-error result and the model.ProviderType of the
 // provider that answered with that result.
 func (ps Providers) MatchId(text string) (model.ProviderType, model.ExternalTrackId, error) {
@@ -72,28 +78,41 @@ func (ps Providers) Except(providerType model.ProviderType) Providers {
 
 func (ps Providers) LookupMetadata(metadata model.TrackMetadata) model.Links {
 
-	var wg sync.WaitGroup
-	results := make(model.Links, len(ps))
-	var mu sync.Mutex
+	return util.ParallelMapValues(ps, func(p Provider) (string, error) {
 
-	for providerType, p := range ps {
-		wg.Add(1)
-		providerType := providerType
-		p := p
-		go func() {
-			defer wg.Done()
-			match := p.LookupMetadata(metadata)
-			if match == "" {
-				return
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			results[providerType] = match
-		}()
+		match := p.LookupMetadata(metadata)
+		if match == "" {
+			return "", ErrMessageNotMatched
+		}
+		return match, nil
+	})
+}
+
+type Searchers map[model.ProviderType]Searcher
+
+func (ps Providers) Searchers() Searchers {
+
+	ret := make(Searchers)
+
+	for k, v := range ps {
+		if s, ok := v.(Searcher); ok {
+			ret[k] = s
+		}
 	}
 
-	wg.Wait()
-	return results
+	return ret
+}
+
+func (ps Searchers) LookupQuery(query string) model.Links {
+
+	return util.ParallelMapValues(ps, func(s Searcher) (string, error) {
+
+		match := s.LookupQuery(query)
+		if match == "" {
+			return "", ErrMessageNotMatched
+		}
+		return match, nil
+	})
 }
 
 func DefaultNoMatchResult(text string) (model.ExternalTrackId, error) {

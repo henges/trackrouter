@@ -46,7 +46,10 @@ func (s *YoutubeLookup) LookupId(id string) (model.TrackMetadata, error) {
 
 func (s *YoutubeLookup) LookupMetadata(metadata model.TrackMetadata) string {
 
-	query := providers.DefaultTrackMetadataQuery(metadata)
+	return s.LookupQuery(providers.DefaultTrackMetadataQuery(metadata))
+}
+
+func (s *YoutubeLookup) LookupQuery(query string) string {
 	res, err := s.client.Search.List([]string{"snippet"}).Q(query).Do()
 	if err != nil {
 		log.Error().Err(err).Msg("in youtube request")

@@ -14,7 +14,8 @@ func main() {
 	deps := di.Get(c)
 	ps := providers.NewProviders(di.DefaultProvidersFromDeps(deps.Clients)...)
 	linkRes := service.NewLinkResolutionService(ps)
-	result, err := linkRes.FindLinks("https://tidal.com/track/634872 best trip hop album imo! with his other one maxinquaye")
+	//result, err := linkRes.FindLinksFromUrl("https://tidal.com/track/634872 best trip hop album imo! with his other one maxinquaye")
+	result, err := linkRes.FindLinksFromMessage("nick drake magic")
 	if err != nil {
 		log.Err(err).Send()
 	}

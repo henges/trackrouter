@@ -71,7 +71,11 @@ func (s *TidalLookup) LookupId(id string) (model.TrackMetadata, error) {
 
 func (s *TidalLookup) LookupMetadata(metadata model.TrackMetadata) string {
 
-	query := providers.DefaultTrackMetadataQuery(metadata)
+	return s.LookupQuery(providers.DefaultTrackMetadataQuery(metadata))
+}
+
+func (s *TidalLookup) LookupQuery(query string) string {
+
 	search, err := s.client.Search(context.Background(), query)
 	if err != nil {
 		log.Error().Err(err).Msg("in tidal request")

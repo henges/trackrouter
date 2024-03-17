@@ -3,3 +3,5 @@
 .cache
 gen*.go
 main
+build
+copy_remote.sh
