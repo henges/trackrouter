@@ -8,11 +8,12 @@ import (
 
 type LinkResolutionService struct {
 	Providers providers.Providers
+	Searchers providers.Searchers
 }
 
 func NewLinkResolutionService(ps providers.Providers) *LinkResolutionService {
 
-	return &LinkResolutionService{Providers: ps}
+	return &LinkResolutionService{Providers: ps, Searchers: ps.Searchers()}
 }
 
 func (l *LinkResolutionService) FindLinksFromUrl(message string) (*model.UrlMatchResult, error) {
@@ -43,11 +44,22 @@ func (l *LinkResolutionService) FindLinksFromUrl(message string) (*model.UrlMatc
 
 func (l *LinkResolutionService) FindLinksFromMessage(message string) (model.Links, error) {
 
-	links := l.Providers.Searchers().LookupQuery(message)
+	links := l.Searchers.LookupQuery(message)
 	if len(links) == 0 {
 		return nil, providers.ErrIdNotMatched
 	}
 	log.Debug().Any("links", links).Msg("Got metadata")
 
 	return links, nil
+}
+
+func (l *LinkResolutionService) CloneWithJust(providerType model.ProviderType) *LinkResolutionService {
+
+	for k, v := range l.Providers {
+		if k == providerType {
+			return NewLinkResolutionService(providers.Providers{k: v})
+		}
+	}
+	// Shouldn't be possible I think?
+	panic("invalid provider type provided")
 }

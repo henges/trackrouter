@@ -6,6 +6,7 @@ import (
 	gobot "github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
 	"github.com/henges/trackrouter/config"
+	"github.com/henges/trackrouter/model"
 	"github.com/henges/trackrouter/service"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
@@ -29,14 +30,38 @@ type Commands []Command
 func GetCommands(svc *service.LinkResolutionService) Commands {
 
 	lr := &LinkResponse{svc: svc}
+	spotifyLr := &LinkResponse{svc: svc.CloneWithJust(model.ProviderTypeSpotify), prefix: "spotify"}
+	tidalLr := &LinkResponse{svc: svc.CloneWithJust(model.ProviderTypeTidal), prefix: "tidal"}
+	youtubeLr := &LinkResponse{svc: svc.CloneWithJust(model.ProviderTypeYoutube), prefix: "youtube"}
 
-	return Commands{
+	commands := Commands{
 		{
 			BotCommand: gotgbot.BotCommand{
 				Command:     "link",
 				Description: "Attempts to find links to tracks on streaming services based on a query.",
 			},
 			Func: lr.Response,
+		},
+		{
+			BotCommand: gotgbot.BotCommand{
+				Command:     "spotify",
+				Description: "Attempts to find links to tracks on Spotify based on a query.",
+			},
+			Func: spotifyLr.Response,
+		},
+		{
+			BotCommand: gotgbot.BotCommand{
+				Command:     "tidal",
+				Description: "Attempts to find links to tracks on Tidal based on a query.",
+			},
+			Func: tidalLr.Response,
+		},
+		{
+			BotCommand: gotgbot.BotCommand{
+				Command:     "youtube",
+				Description: "Attempts to find links to tracks on YouTube based on a query.",
+			},
+			Func: youtubeLr.Response,
 		},
 		{
 			BotCommand: gotgbot.BotCommand{
@@ -50,6 +75,7 @@ func GetCommands(svc *service.LinkResolutionService) Commands {
 			},
 		},
 	}
+	return commands
 }
 
 func CommandsEqual(v1 []Command, v2 []gotgbot.BotCommand) bool {

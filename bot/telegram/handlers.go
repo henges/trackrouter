@@ -70,7 +70,8 @@ func (h *URLHandler) Name() string {
 }
 
 type LinkResponse struct {
-	svc *service.LinkResolutionService
+	svc    *service.LinkResolutionService
+	prefix string
 }
 
 func (h *LinkResponse) Response(b *gotgbot.Bot, ctx *gobot.Context) error {
@@ -82,8 +83,8 @@ func (h *LinkResponse) Response(b *gotgbot.Bot, ctx *gobot.Context) error {
 		Str("username", user).
 		Msg("Handle update")
 
-	// Strip link command
-	message = strings.Replace(message, "/link ", "", 1)
+	// Strip command name
+	message = strings.TrimSpace(strings.Replace(message, "/"+h.prefix, "", 1))
 	result, err := h.svc.FindLinksFromMessage(message)
 	if err != nil {
 		// Not an error case.
